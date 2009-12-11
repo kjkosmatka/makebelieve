@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kristopher Kosmatka"]
-  s.date = %q{2009-12-07}
+  s.date = %q{2009-12-08}
   s.description = %q{
       A framework and tool set for building Bayesian Networks.  Included are
       a quasi domain specific language for network specification as well as
@@ -29,8 +29,14 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "lib/makebelieve.rb",
+     "lib/makebelieve/network.rb",
+     "lib/makebelieve/potential.rb",
+     "lib/makebelieve/variable.rb",
+     "makebelieve.gemspec",
+     "spec/features.rb",
      "test/helper.rb",
-     "test/test_makebelieve.rb"
+     "test/test_potential.rb",
+     "test/test_variable.rb"
   ]
   s.homepage = %q{http://github.com/kjkosmatka/makebelieve}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -38,8 +44,10 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{A toolbox for building Bayes Nets}
   s.test_files = [
-    "test/helper.rb",
-     "test/test_makebelieve.rb"
+    "spec/features.rb",
+     "test/helper.rb",
+     "test/test_potential.rb",
+     "test/test_variable.rb"
   ]
 
   if s.respond_to? :specification_version then

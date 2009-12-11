@@ -1,10 +1,13 @@
 class Variable
   
-  attr_reader :name, :outcomes, :cardinality
+  attr_reader :name, :outcomes
   
   def initialize(name,outcomes)
     @name, @outcomes = name, outcomes
-    @cardinality = outcomes.size
+  end
+  
+  def cardinality
+    @outcomes.size
   end
   
 end
