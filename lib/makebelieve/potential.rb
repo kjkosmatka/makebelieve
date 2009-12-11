@@ -1,5 +1,9 @@
 class Potential
   
+  require 'set'
+  
+  attr_reader :variables
+  
   def initialize(variables, probabilities)
     @variables = variables
     @probabilities = probabilities.flatten
@@ -30,27 +34,28 @@ class Potential
   
   def valid_instance?(instance)
     # the instance must have a setting for every variable
-    return false unless Set.new(instance.keys) == Set.new(domain)
+    instance_domain, potential_domain = Set.new(instance.keys), Set.new(domain)
+    return false unless potential_domain.subset? instance_domain
     # every variable's setting in the instance must be valid
     not @variables.map { |v| v.outcomes.include?(instance[v.name]) }.include?(false)
   end
   
+  def instances_of(variables)
+    names = variables.collect(&:name)
+    outcomes = variables.collect(&:outcomes)
+    outcomes.inject { |p,a| p.product(a) }.map(&:flatten).map do |instance|
+      Hash[*names.zip(instance).flatten]
+    end
+  end
+  
   def marginalize(variable,options={})
-    mvariable = @variables.find { |v| v.name == variable }
+    mvar = @variables.find { |v| v.name == variable }
     keepers = @variables.reject { |v| v.name == variable }
-    outcomes = keepers.collect(&:outcomes)
-    
-    # cartesian product of outcomes across the keeper variables
-    instances = outcomes.inject {|p,a| p.product(a)}.map(&:flatten)
-    # converts the instances into hashes, keys are var names, vals are settings.
-    instances = instances.map { |i| Hash[*keepers.collect(&:name).zip(i).flatten] }
-    
-    # for each instance in the keepers, sum across settings for the marginal var
-    keeper_probs = instances.inject([]) do |margin, instance|
-      margin << mvariable.outcomes.inject(0) do |sum, mvoutcome|
-        instance[mvariable.name] = mvoutcome
+    keeper_probs = instances_of(keepers).map do |instance|
+      mvar.outcomes.inject(0) do |sum, mvoutcome|
+        instance[mvar.name] = mvoutcome
         sum += probability(instance)
-      end 
+      end
     end
     if options[:mutate]
       @variables, @probabilities = keepers, keeper_probs
@@ -64,13 +69,9 @@ class Potential
   end
   
   def observe(variable_setting,options={})
-    mvariable = @variables.find { |v| v.name == variable_setting.keys.first }
     keepers = @variables.reject { |v| v.name == variable_setting.keys.first }
-    outcomes = keepers.collect(&:outcomes)
-    instances = outcomes.inject {|p,a| p.product(a)}.map(&:flatten)
-    instances = instances.map { |i| Hash[*keepers.collect(&:name).zip(i).flatten] }
-    keeper_probs = instances.map do |i|
-      probability(i.update(variable_setting))
+    keeper_probs = instances_of(keepers).map do |instance|
+      probability(instance.update(variable_setting))
     end
     if options[:mutate]
       @variables, @probabilities = keepers, keeper_probs
@@ -88,7 +89,11 @@ class Potential
   end
   
   def *(other)
-    # TODO
+    vars = Set.new(@variables + other.variables).to_a
+    probs = instances_of(vars).map do |instance|
+      probability(instance) * other.probability(instance)
+    end
+    Potential.new(vars,probs)
   end
   
   def /(other)

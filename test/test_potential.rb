@@ -1,15 +1,14 @@
 require 'helper'
-require 'set'
 
 class TestPotential < Test::Unit::TestCase
   
   context "A potential" do
     
     setup do
-      u = Variable.new :smoking, [:none, :medium, :high]
-      v = Variable.new :bloop, [:one, :two, :three, :four]
-      w = Variable.new :cancer, [true, false]
-      @p = Potential.new [u,v,w], (1..24).to_a
+      @u = Variable.new :smoking, [:none, :medium, :high]
+      @v = Variable.new :bloop, [:one, :two, :three, :four]
+      @w = Variable.new :cancer, [true, false]
+      @p = Potential.new [@u,@v,@w], (1..24).to_a
     end
     
     should "report its domain." do
@@ -26,11 +25,17 @@ class TestPotential < Test::Unit::TestCase
     end
     
     should "identify valid instance settings." do
-      assert @p.valid_instance?(:smoking => :none, :bloop => :three, :cancer => true)
+      assert @p.valid_instance?(:smoking => :none, :bloop => :three, 
+                                :cancer => true, :variable => :not_in_domain)
     end
     
     should "identify invalid instance settings." do
-      assert !@p.valid_instance?(:smoking => :noone, :bloop => :four, :cancer => true)
+      assert !@p.valid_instance?(:smoking => :invalid_outcome, 
+                                 :bloop => :four, :cancer => true)
+    end
+    
+    should "generate instances of an array of variables" do
+      @p.instances_of([@u,@v])
     end
     
   end

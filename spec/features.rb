@@ -1,8 +1,10 @@
 bn = makebelieve::Network do
   
-  name   "Earthquakes and Burglaries"
-  author "Kristopher J. Kosmatka"
-  date   DateTime.now
+  attributes do
+    name   "Earthquakes and Burglaries"
+    author "Kristopher J. Kosmatka"
+    date   DateTime.now
+  end
   
   variables do
     boolean  :alarm
