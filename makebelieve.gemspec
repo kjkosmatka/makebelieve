@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{makebelieve}
-  s.version = "0.0.0"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kristopher Kosmatka"]
-  s.date = %q{2009-12-15}
+  s.date = %q{2009-12-16}
   s.description = %q{
       A framework and tool set for building Bayesian Networks.  Included are
       a quasi domain specific language for network specification as well as
@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
      "VERSION",
      "lib/makebelieve.rb",
      "lib/makebelieve/elimination.rb",
+     "lib/makebelieve/gibbs_inference.rb",
      "lib/makebelieve/graph.rb",
      "lib/makebelieve/monkey_patches.rb",
      "lib/makebelieve/network.rb",
@@ -41,6 +42,7 @@ Gem::Specification.new do |s|
      "test/test_bioinformatics.rb",
      "test/test_biotwo.rb",
      "test/test_elimination.rb",
+     "test/test_gibbs_inference.rb",
      "test/test_graph.rb",
      "test/test_inference.rb",
      "test/test_monkey_patches.rb",
@@ -60,6 +62,7 @@ Gem::Specification.new do |s|
      "test/test_bioinformatics.rb",
      "test/test_biotwo.rb",
      "test/test_elimination.rb",
+     "test/test_gibbs_inference.rb",
      "test/test_graph.rb",
      "test/test_inference.rb",
      "test/test_monkey_patches.rb",
