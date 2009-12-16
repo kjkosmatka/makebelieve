@@ -20,7 +20,11 @@ class Network
     if options[:by] == :enumeration
       return ask_enumerate(var, evidence)
     elsif options[:by] == :elimination
-      Elimination.new(self,variable_name,evidence).infer
+      return Elimination.new(self,variable_name,evidence).infer
+    elsif options[:by] == :gibbs
+      g = GibbsInference.new(self, evidence)
+      g.infer
+      return g.query(variable_name)
     end
   end
   
@@ -34,11 +38,7 @@ class Network
         @pots.multiply { |pot| pot.probability(instance) }
       end
     end
-    distribution.normalized
-  end
-  
-  def ask_eliminate(variable, evidence, options={})
-    # TODO
+    DiscreteDistribution.new distribution.normalized
   end
   
   def given(evidence)
@@ -60,6 +60,10 @@ class Network
     vars = varnames.map { |vname| @vars.find_by_name(vname) }
     probs = block_given? ? block.call : options[:distribution]
     @pots << Potential.new(vars, probs)
+  end
+  
+  def variable(symbol)
+    @vars.find_by_name(symbol)
   end
   
   def context(symbol, &block)

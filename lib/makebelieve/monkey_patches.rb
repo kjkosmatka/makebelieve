@@ -36,7 +36,7 @@ class Array
   end
   
   def normalized
-    map { |i| i / sum }
+    map { |i| i.to_f / sum }
   end
   
   def method_missing(symbol, *args, &block)
@@ -71,5 +71,16 @@ class Float
 
   def floor_to(x)
     (self * 10**x).floor.to_f / 10**x
+  end
+end
+
+class DiscreteDistribution < Array
+  def sample
+    param_limit = 0
+    random_sample = rand
+    each_with_index do |param,i|
+      param_limit += param
+      return i if random_sample < param_limit
+    end
   end
 end

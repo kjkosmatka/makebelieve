@@ -69,6 +69,13 @@ class TestNetwork < Test::Unit::TestCase
       assert_equal [0.3577, 0.6423], dist.map { |i| i.round_to(4) }
     end
     
+    should "return a distribution when queried using gibbs sampling" do
+      dist = @n.ask :rain, :by => :gibbs do
+        given :grass_wet => true
+      end
+      p "by gibbs #{dist.inspect}"
+    end
+    
     should "have a graph representation" do
       assert_equal [:rain, :sprinkler, :grass_wet], @n.graph.nodes
     end

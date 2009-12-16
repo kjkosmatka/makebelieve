@@ -51,7 +51,7 @@ class Elimination
       elim_nodes.delete  elim_node
     end
     final_pot = @pots.inject(&:*)
-    final_pot.probabilities.normalized
+    DiscreteDistribution.new final_pot.probabilities.normalized
   end
   
 end

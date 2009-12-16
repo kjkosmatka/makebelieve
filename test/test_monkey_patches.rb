@@ -48,4 +48,19 @@ class TestVariable < Test::Unit::TestCase
     
   end
   
+  context "A discrete distribution" do
+    setup do
+      @d = DiscreteDistribution.new [0.1,0.3,0.6]
+    end
+    
+    should "sample according to parameters" do
+      counts = {0 => 0, 1 => 0, 2 => 0}
+      n = 5000
+      n.times do
+        counts[@d.sample] += 1
+      end
+      # counts.each_pair { |k,v| puts "#{k}: #{v} ... #{v/n.to_f}" }
+    end
+  end
+  
 end
