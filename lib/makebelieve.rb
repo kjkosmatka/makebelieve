@@ -1,5 +1,5 @@
 PROJECT_NAME = 'makebelieve'
-CLASSES = ['variable','potential','network']
+CLASSES = ['variable','potential','network','graph','elimination','monkey_patches']
 
 libpath = File.dirname(__FILE__)
 classpath = File.join(libpath, PROJECT_NAME)

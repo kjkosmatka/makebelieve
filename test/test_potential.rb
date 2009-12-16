@@ -34,10 +34,6 @@ class TestPotential < Test::Unit::TestCase
                                  :bloop => :four, :cancer => true)
     end
     
-    should "generate instances of an array of variables" do
-      @p.instances_of([@u,@v])
-    end
-    
   end
   
   context "A marginalized potential" do

@@ -2,7 +2,7 @@ class Potential
   
   require 'set'
   
-  attr_reader :variables
+  attr_reader :variables, :probabilities
   
   def initialize(variables, probabilities)
     @variables = variables
@@ -18,7 +18,7 @@ class Potential
   end
   
   def domain
-    @variables.map { |v| v.name }
+    @variables.collect(&:name)
   end
   
   def probability(instance)
@@ -36,42 +36,36 @@ class Potential
     # the instance must have a setting for every variable
     instance_domain, potential_domain = Set.new(instance.keys), Set.new(domain)
     return false unless potential_domain.subset? instance_domain
+    
     # every variable's setting in the instance must be valid
-    not @variables.map { |v| v.outcomes.include?(instance[v.name]) }.include?(false)
+    @variables.all? { |v| v.outcomes.include?(instance[v.name]) }
   end
   
-  def instances_of(variables)
-    names = variables.collect(&:name)
-    outcomes = variables.collect(&:outcomes)
-    outcomes.inject { |p,a| p.product(a) }.map(&:flatten).map do |instance|
-      Hash[*names.zip(instance).flatten]
-    end
-  end
-  
-  def marginalize(variable,options={})
-    mvar = @variables.find { |v| v.name == variable }
-    keepers = @variables.reject { |v| v.name == variable }
-    keeper_probs = instances_of(keepers).map do |instance|
-      mvar.outcomes.inject(0) do |sum, mvoutcome|
-        instance[mvar.name] = mvoutcome
-        sum += probability(instance)
+  def marginalize(variable_name,options={})
+    marginal_var = @variables.find { |v| v.name == variable_name }
+    keepers = @variables.reject { |v| v.name == variable_name }
+    
+    keeper_probs = Variable::instantiations(keepers).map do |instance|
+      marginal_var.instances.inject(0) do |sum,marginal_instance|
+        sum + probability(instance.merge(marginal_instance))
       end
     end
     if options[:mutate]
       @variables, @probabilities = keepers, keeper_probs
+      return self
     else
       Potential.new(keepers, keeper_probs)
     end
   end
   
-  def marginalize!(variable)
-    marginalize(variable, :mutate => true)
+  def marginalize!(variable_name)
+    marginalize(variable_name, :mutate => true)
   end
   
-  def observe(variable_setting,options={})
-    keepers = @variables.reject { |v| v.name == variable_setting.keys.first }
-    keeper_probs = instances_of(keepers).map do |instance|
-      probability(instance.update(variable_setting))
+  def observe(evidence,options={})
+    keepers = @variables.reject { |v| evidence.keys.include?(v.name) }
+    keeper_probs = Variable::instantiations(keepers).map do |instance|
+      probability(instance.merge(evidence))
     end
     if options[:mutate]
       @variables, @probabilities = keepers, keeper_probs
@@ -80,8 +74,8 @@ class Potential
     end
   end
   
-  def observe!(variable_setting)
-    observe(variable_setting, :mutate => true)
+  def observe!(evidence)
+    observe(evidence, :mutate => true)
   end
   
   def normalize
@@ -90,7 +84,7 @@ class Potential
   
   def *(other)
     vars = Set.new(@variables + other.variables).to_a
-    probs = instances_of(vars).map do |instance|
+    probs = Variable::instantiations(vars).map do |instance|
       probability(instance) * other.probability(instance)
     end
     Potential.new(vars,probs)

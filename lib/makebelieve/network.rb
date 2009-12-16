@@ -2,38 +2,69 @@ class Network
   
   require 'ostruct'
   CONTEXTS = [:variables, :probabilities, :attributes]
-  attr_reader :vars, :pots, :meta
+  attr_reader :vars, :pots, :meta, :graph
   
   def initialize(options={}, &block)
     @meta = OpenStruct.new
+    @graph = Graph.new
     @vars = options[:variables].nil? ? [] : optioens[:variables]
     @pots = options[:potentials].nil? ? [] : options[:potentials]
     self.instance_eval(&block) if block_given?
   end
   
-  def boolean(name)
-    @vars << Variable.new(name,[true,false])
+  def ask(variable_name, options={}, &block)
+    defaults = {:by => :enumeration, :given => Hash.new}
+    options = defaults.merge(options)
+    var = @vars.find_by_name(variable_name)
+    evidence = block_given? ? instance_eval(&block) : options[:given]
+    if options[:by] == :enumeration
+      return ask_enumerate(var, evidence)
+    elsif options[:by] == :elimination
+      Elimination.new(self,variable_name,evidence).infer
+    end
   end
   
-  def discrete(name,outcomes)
+  def ask_enumerate(variable, evidence)
+    # form an array with an entry for each outcome of the query variable
+    distribution = variable.outcomes.map do |voutcome|
+      # add this outcome to the evidence
+      ev = evidence.merge({variable.name => voutcome})
+      # summing across all instantiations consistent with evidence
+      Variable::instantiations(@vars, :given => ev).sum do |instance|
+        @pots.multiply { |pot| pot.probability(instance) }
+      end
+    end
+    distribution.normalized
+  end
+  
+  def ask_eliminate(variable, evidence, options={})
+    # TODO
+  end
+  
+  def given(evidence)
+    evidence
+  end
+  
+  def discrete(name, outcomes=[true,false])
     @vars << Variable.new(name,outcomes)
   end
   
-  def new_potential(variable_name, options={}, &block)
+  alias_method :boolean, :discrete
+  
+  def add_potential(variable_name, options={}, &block)
+    parents = options[:given]
+    @graph.node variable_name
+    @graph.breed parents, variable_name unless parents.nil?
+    
     varnames = Array(options[:given]) + Array(variable_name)
-    vars = varnames.map do |vname|
-      @vars.find { |v| v.name == vname }
-    end
-    probs = options[:probabilities]
-    probs = block.call if block_given?
+    vars = varnames.map { |vname| @vars.find_by_name(vname) }
+    probs = block_given? ? block.call : options[:distribution]
     @pots << Potential.new(vars, probs)
   end
   
   def context(symbol, &block)
     @context = symbol.to_sym
-    if block_given? and CONTEXTS.include?(@context)
-      self.instance_eval(&block)
-    end
+    instance_eval(&block) if block_given? and CONTEXTS.include?(@context)
     @context = nil
   end
   
@@ -43,7 +74,7 @@ class Network
     elsif @context == :variables
       # pass
     elsif @context == :probabilities
-      new_potential(symbol, *args, &block)
+      add_potential(symbol, *args, &block)
     elsif @context == :attributes
       @meta.send("#{symbol}=", args[0])
     else

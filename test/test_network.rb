@@ -6,59 +6,71 @@ class TestNetwork < Test::Unit::TestCase
     
     setup do
       @n = Network.new do
+        
         attributes do
-          title  "Earthquakes and Burglaries"
+          title  "Wet Grass"
           author "Kristopher J. Kosmatka"
           date    DateTime.now
         end
 
         variables do
-          boolean  :alarm
-          boolean  :neighbor_call
-          boolean  :burglary
-          discrete :earthquake, [:none, :medium, :large]
+          boolean  :rain
+          boolean  :sprinkler
+          boolean  :grass_wet
         end
 
         probabilities do
-          alarm :given => [:burglary, :earthquake] do
-            [[0.5, 0.5], [0.5, 0.3], [0.5, 0.5],
-             [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]
+          rain :distribution => [0.2, 0.8]
+          sprinkler :given => :rain do
+            [[0.01, 0.99], [0.4, 0.6]]
           end
-          neighbor_call :given => :alarm do
-            [[0.9, 0.1],
-             [0.8, 0.2]]
+          grass_wet :given => [:sprinkler, :rain] do
+            [[0.99, 0.01], [0.9, 0.1],
+             [0.8,  0.2],  [0.0, 1.0]]
           end
-          burglary   :probabilities => [0.1, 0.9]
-          earthquake :probabilities => [0.01, 0.09, 0.9]
         end
         
       end
     end
     
     should "allow dynamic metainfo setting" do
-      assert_equal "Earthquakes and Burglaries", @n.meta.title
+      assert_equal "Wet Grass", @n.meta.title
       assert_equal "Kristopher J. Kosmatka", @n.meta.author
-      puts @n.meta.date
     end
     
     should "allow adding variables in the instantiation block" do
-      assert_equal 4, @n.vars.size
-      assert_equal :alarm, @n.vars.first.name
+      assert_equal 3, @n.vars.size
+      assert_equal :rain, @n.vars.first.name
       assert_equal [true,false], @n.vars.first.outcomes
-      assert_equal [:none,:medium,:large], @n.vars.last.outcomes
+      assert_equal [true,false], @n.vars.last.outcomes
     end
     
     should "allow adding potentials in the instantiation block" do
-      assert_equal 4, @n.pots.count
-      assert_equal [:burglary, :earthquake, :alarm], @n.pots.first.domain
-      assert_equal [:alarm, :neighbor_call], @n.pots[1].domain
-      assert_equal [:earthquake], @n.pots[3].domain
-      assert_equal 0.3, @n.pots.first.probability(
-        :alarm => false, :earthquake => :medium, :burglary => true)
+      assert_equal 3, @n.pots.count
+      assert_equal [:rain], @n.pots.first.domain
+      assert_equal [:rain, :sprinkler], @n.pots[1].domain
     end
     
     should "allow products of its potentials" do
       @n.pots.first * @n.pots.last
+    end
+    
+    should "return a distribution when queried using enumeration" do
+      dist = @n.ask :rain, :by => :enumeration do
+        given :grass_wet => true
+      end
+      assert_equal [0.3577, 0.6423], dist.map { |i| i.round_to(4) }
+    end
+    
+    should "return a distribution when queried using elimination" do
+      dist = @n.ask :rain, :by => :elimination do
+        given :grass_wet => true
+      end
+      assert_equal [0.3577, 0.6423], dist.map { |i| i.round_to(4) }
+    end
+    
+    should "have a graph representation" do
+      assert_equal [:rain, :sprinkler, :grass_wet], @n.graph.nodes
     end
     
   end
