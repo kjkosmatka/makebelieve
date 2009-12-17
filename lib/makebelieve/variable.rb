@@ -1,10 +1,9 @@
 class Variable
   
-  attr_reader :name, :outcomes
+  attr_accessor :name, :outcomes
   
   def initialize(name,outcomes)
     @name, @outcomes = name, outcomes
-    @parents, @children = [], []
   end
   
   def cardinality
@@ -28,10 +27,28 @@ class Variable
     end
   end
   
-  def self.each_instantiation(variables, options={})
-    self.instantiations(variables, options).each do |instantiation|
-      yield instantiation
+  def self.each_instantiation(variables, options={:given => {}})
+    evidence = options[:given]
+    non_e_vars = variables.reject { |v| evidence.keys.include?(v.name) }
+    non_e_names = non_e_vars.collect(&:name)
+    non_e_outcomes = non_e_vars.collect(&:outcomes)
+    non_e_outcomes.each_combination do |outcome_combo|
+      non_evidence = Hash[*non_e_names.zip(outcome_combo).flatten]
+      yield evidence.merge(non_evidence)
     end
+  end
+  
+  def self.random_instantiation(variables, options={:given => {}})
+    evidence = options[:given]
+    inst = {}
+    variables.each do |v|
+      if evidence.has_key?(v.name)
+        inst[v.name] = evidence[v.name]
+      else
+        inst[v.name] = v.outcomes.random_item
+      end
+    end
+    return inst
   end
   
 end

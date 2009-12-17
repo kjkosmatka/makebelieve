@@ -84,3 +84,33 @@ class DiscreteDistribution < Array
     end
   end
 end
+
+module Enumerable
+  def each_combination
+    collection = map { |item| Array(item) }
+    counts = collection.map(&:size)
+    ncombos = counts.inject(&:*)
+    bases = counts.reverse.inject([1]) do |bases,count|
+      bases << count * bases.last
+    end
+    bases.pop  
+    bases.reverse!
+    ncombos.times do |n|
+      combo = n.change_base(bases).zip(collection).map do |idx,item|
+        item[idx]
+      end
+      yield combo
+    end
+  end
+end
+
+class Integer
+  def change_base(bases)
+    nbr = self
+    bases.inject([]) do |rebase,b|
+      rebase << nbr / b
+      nbr %= b
+      rebase
+    end
+  end
+end

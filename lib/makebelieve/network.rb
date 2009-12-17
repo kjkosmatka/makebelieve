@@ -12,6 +12,10 @@ class Network
     self.instance_eval(&block) if block_given?
   end
   
+  def full_setting_probability(instance)
+    @pots.inject(1) { |product,pot| product * pot.probability(instance) }
+  end
+  
   def ask(variable_name, options={}, &block)
     defaults = {:by => :enumeration, :given => Hash.new}
     options = defaults.merge(options)
@@ -20,9 +24,9 @@ class Network
     if options[:by] == :enumeration
       return ask_enumerate(var, evidence)
     elsif options[:by] == :elimination
-      return Elimination.new(self,variable_name,evidence).infer
+      return Elimination.new(self, variable_name, evidence).infer
     elsif options[:by] == :gibbs
-      g = GibbsInference.new(self, evidence)
+      g = GibbsInference.new(self, evidence, options)
       g.infer
       return g.query(variable_name)
     end
@@ -34,9 +38,11 @@ class Network
       # add this outcome to the evidence
       ev = evidence.merge({variable.name => voutcome})
       # summing across all instantiations consistent with evidence
-      Variable::instantiations(@vars, :given => ev).sum do |instance|
-        @pots.multiply { |pot| pot.probability(instance) }
+      sum = 0
+      Variable::each_instantiation(@vars, :given => ev) do |instance|
+        sum += full_setting_probability(instance)
       end
+      sum
     end
     DiscreteDistribution.new distribution.normalized
   end

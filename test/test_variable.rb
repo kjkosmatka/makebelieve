@@ -27,11 +27,19 @@ class TestVariable < Test::Unit::TestCase
     
     should "iterate through instances" do
       vars = [@u, @v, @w]
-      evidence = { :smoking => :high, :rain => true }
+      evidence = { :smoking => :high }
       assert_nothing_raised do
         Variable::each_instantiation(vars, :given => evidence) do |inst|
-          # pass
+          # p inst
         end
+      end
+    end
+    
+    should "get a random instantiation" do
+      vars = [@u, @v, @w]
+      evidence = { :smoking => :high }
+      assert_nothing_raised do
+        Variable::random_instantiation(vars, :given => evidence)
       end
     end
         

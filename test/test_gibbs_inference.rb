@@ -50,8 +50,8 @@ class TestNetwork < Test::Unit::TestCase
     should "infer" do
       @g.infer
       @n.vars.collect(&:name).each do |varname|
-        by_enum = @n.ask varname, :given => {:grass_wet => true}
-        p varname, @g.query(varname), by_enum
+        # by_enum = @n.ask varname, :given => {:grass_wet => true}
+        # p varname, @g.query(varname), by_enum
       end
     end
     

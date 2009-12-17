@@ -94,4 +94,8 @@ class Potential
     # TODO
   end
   
+  def another
+    Potential.new(@variables.map(&:dup),@probabilities.dup)
+  end
+  
 end

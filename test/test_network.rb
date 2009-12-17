@@ -73,11 +73,16 @@ class TestNetwork < Test::Unit::TestCase
       dist = @n.ask :rain, :by => :gibbs do
         given :grass_wet => true
       end
-      p "by gibbs #{dist.inspect}"
+      # p "by gibbs #{dist.inspect}"
     end
     
     should "have a graph representation" do
       assert_equal [:rain, :sprinkler, :grass_wet], @n.graph.nodes
+    end
+    
+    should "compute a full setting" do
+      # p @n.full_setting_probability(:rain => true, :sprinkler => true, :grass_wet => true )
+      # p @n.full_setting_probability(:rain => false, :sprinkler => false, :grass_wet => false )
     end
     
   end

@@ -4,10 +4,11 @@ class Graph
   
   Edge = Struct.new(:parent,:child)
   
-  attr_reader :nodes, :edges
+  attr_accessor :nodes, :edges
   
-  def initialize(&block)
-    @nodes, @edges = [], []
+  def initialize(nodes=nil, edges=nil, &block)
+    @nodes = nodes.nil? ? [] : nodes
+    @edges = edges.nil? ? [] : edges
     instance_eval(&block) if block_given?
   end
   
@@ -61,6 +62,10 @@ class Graph
   def remove(node)
     @edges.reject! { |e| e.parent == node or e.child == node }
     @nodes.reject! { |n| n == node }
+  end
+  
+  def another
+    Graph.new(@nodes.dup,@edges.dup)
   end
   
 end

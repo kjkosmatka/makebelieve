@@ -3,8 +3,8 @@ class Elimination
   attr_reader :pots, :graph, :query, :evidence, :order
   
   def initialize(network, query_variable, evidence, options={})
-    @pots = network.pots.clone
-    @graph = network.graph.clone
+    @pots = network.pots.map(&:dup)
+    @graph = network.graph.another
     @query = query_variable
     @evidence = evidence
     @order = options[:order]
@@ -30,7 +30,7 @@ class Elimination
   
   def eliminate(variable_name)
     relevant_pots = @pots.find_all { |pot| pot.domain.include?(variable_name) }
-    newpot = relevant_pots.inject(&:*).clone
+    newpot = relevant_pots.inject(&:*).dup
     if @evidence.keys.include?(variable_name)
       newpot.observe!( {variable_name => @evidence[variable_name]} )
     elsif variable_name != @query
